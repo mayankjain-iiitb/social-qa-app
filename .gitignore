@@ -1,0 +1,17 @@
+#Ignore folder named .idea
+.idea/
+quora-api/target/
+quora-service/target/
+quora-db/target/
+
+
+#Ignore all .iml files
+*.iml
+
+#Ignore folder
+quora-api/target
+quora-db/target
+quora-service/target
+
+#Ignore file 
+.idea/compiler.xml
