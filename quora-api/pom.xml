@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <artifactId>quora-api</artifactId>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>swagger-codegen-maven-plugin</artifactId>
+          <configuration>
+            <configOptions>
+              <dateLibrary>java8</dateLibrary>
+              <java8>true</java8>
+              <sourceFolder>.</sourceFolder>
+            </configOptions>
+            <generateApis>false</generateApis>
+            <generateModels>true</generateModels>
+            <language>spring</language>
+            <library>spring-boot</library>
+            <modelPackage>com.upgrad.quora.api.model</modelPackage>
+            <output>${project.build.directory}/generated-sources</output>
+          </configuration>
+          <groupId>io.swagger</groupId>
+
+          <version>2.3.1</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <artifactId>swagger-codegen-maven-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <artifactId>swagger-annotations</artifactId>
+            <groupId>io.swagger</groupId>
+            <version>1.5.18</version>
+          </dependency>
+
+          <dependency>
+            <artifactId>swagger-codegen-generators</artifactId>
+            <groupId>io.swagger</groupId>
+            <version>1.0.0-rc0</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/endpoints/user.json</inputSpec>
+              <language>spring</language>
+            </configuration>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <id>user</id>
+          </execution>
+          <execution>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/endpoints/common.json</inputSpec>
+              <language>spring</language>
+            </configuration>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <id>common</id>
+          </execution>
+          <execution>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/endpoints/admin.json</inputSpec>
+              <language>spring</language>
+            </configuration>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <id>admin</id>
+          </execution>
+          <execution>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/endpoints/question.json</inputSpec>
+              <language>spring</language>
+            </configuration>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <id>question</id>
+          </execution>
+          <execution>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/endpoints/answer.json</inputSpec>
+              <language>spring</language>
+            </configuration>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <id>answer</id>
+          </execution>
+
+
+        </executions>
+
+        <groupId>io.swagger</groupId>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+
+    <dependency>
+      <artifactId>swagger-annotations</artifactId>
+      <groupId>io.swagger</groupId>
+      <version>1.5.18</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>springfox-swagger2</artifactId>
+      <groupId>io.springfox</groupId>
+      <scope>compile</scope>
+      <version>2.6.1</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>springfox-swagger-ui</artifactId>
+      <groupId>io.springfox</groupId>
+      <scope>compile</scope>
+      <version>2.6.1</version>
+    </dependency>
+    <dependency>
+      <artifactId>quora-service</artifactId>
+      <groupId>com.upgrad.quora</groupId>
+      <scope>compile</scope>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+  </dependencies>
+
+  <modelVersion>4.0.0</modelVersion>
+
+
+  <parent>
+    <artifactId>quora</artifactId>
+    <groupId>com.upgrad.quora</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+</project>
