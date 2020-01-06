@@ -1,5 +1,4 @@
 package com.upgrad.quora.api.controller;
-
 import com.upgrad.quora.api.model.SigninResponse;
 import com.upgrad.quora.api.model.SignoutResponse;
 import com.upgrad.quora.api.model.SignupUserRequest;
@@ -34,7 +33,7 @@ public class UserController {
   private AuthenticationService authenticationService;
 
   /**
-   * Handler to signup for any prospective user to get registered.
+   * userSignup Api
    *
    * @param signupUserRequest SignupUserRequest
    * @return SingupUserResponse
@@ -46,8 +45,8 @@ public class UserController {
   public ResponseEntity<SignupUserResponse> userSignup(final SignupUserRequest signupUserRequest)
       throws SignUpRestrictedException {
 
-    //Fetch details from signupUserRequest and set in UserEntity instance
     final UserEntity userEntity = new UserEntity();
+
     userEntity.setUuid(UUID.randomUUID().toString());
     userEntity.setFirstName(signupUserRequest.getFirstName());
     userEntity.setLastName(signupUserRequest.getLastName());
@@ -62,15 +61,16 @@ public class UserController {
     userEntity.setRole("nonadmin"); // by default every user will be nonadmin.
     // will be admin only those who had pgadmin access
 
-    //Invoke business Service to signup & return SignupUserResponse
     final UserEntity createdUserEntity = userService.signup(userEntity);
+
     SignupUserResponse userResponse = new SignupUserResponse().id(createdUserEntity.getUuid())
         .status("USER SUCCESSFULLY REGISTERED");
+
     return new ResponseEntity<SignupUserResponse>(userResponse, HttpStatus.CREATED);
   }
 
   /**
-   * Handler to login to social quora.
+   * Login Api.
    *
    * @param authorization access token
    * @return SigninResponse
@@ -82,7 +82,6 @@ public class UserController {
       @RequestHeader("authorization") final String authorization)
       throws AuthenticationFailedException {
 
-    //Split authorization header to get username and password
     byte[] decode = null;
     String[] tokens = authorization.split("Basic ");
 
@@ -95,26 +94,26 @@ public class UserController {
       throw new AuthenticationFailedException("ATH-005",
           "Use format 'Basic (Base64decoded)Username:password'");
     }
+
     String decodedText = new String(decode);
     String[] decodedArray = decodedText.split(":");
 
-    //Invoke Authentication Service
     UserAuthEntity userAuthEntity = authenticationService
         .authenticate(decodedArray[0], decodedArray[1]);
 
-    //Get User details
     UserEntity user = userAuthEntity.getUser();
 
-    //Fill SigninResponse and return
     SigninResponse signinResponse = new SigninResponse().id(user.getUuid())
         .message("SIGNED IN SUCCESSFULLY");
+
     HttpHeaders headers = new HttpHeaders();
     headers.add("access-token", userAuthEntity.getAccessToken());
+
     return new ResponseEntity<SigninResponse>(signinResponse, headers, HttpStatus.OK);
   }
 
   /**
-   * Handler to signout.
+   * Logout Api
    *
    * @param authorization access token
    * @return SignoutResponse
@@ -127,19 +126,17 @@ public class UserController {
       @RequestHeader("authorization") final String authorization)
       throws SignOutRestrictedException, AuthenticationFailedException {
 
-    //Get access token from authorization header
     String jwtToken = authenticationService.getBearerAccessToken(authorization);
 
-    //Invoke business service to logoff
     UserAuthEntity userAuthEntity = authenticationService.logoff(jwtToken);
-    //Get User details who had logged off
-    UserEntity user = userAuthEntity.getUser();
 
-    //Fill in Signout Response and return
+    UserEntity user = userAuthEntity.getUser();
     SignoutResponse signoutResponse = new SignoutResponse().id(user.getUuid())
         .message("SIGNED OUT SUCCESSFULLY");
+
     HttpHeaders headers = new HttpHeaders();
     headers.add("access-token", userAuthEntity.getAccessToken());
+
     return new ResponseEntity<SignoutResponse>(signoutResponse, headers, HttpStatus.OK);
   }
 }
