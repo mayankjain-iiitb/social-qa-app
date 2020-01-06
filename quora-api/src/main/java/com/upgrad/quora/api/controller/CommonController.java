@@ -1,5 +1,4 @@
 package com.upgrad.quora.api.controller;
-
 import com.upgrad.quora.api.model.UserDetailsResponse;
 import com.upgrad.quora.service.business.AuthenticationService;
 import com.upgrad.quora.service.business.UserService;
@@ -28,7 +27,7 @@ public class CommonController {
   private UserService userService;
 
   /**
-   * Get a user profile.
+   * Api to fetch user profile.
    *
    * @param userId        user uuid
    * @param authorization access token
@@ -39,23 +38,20 @@ public class CommonController {
    */
   @RequestMapping(method = RequestMethod.GET, path = "/userprofile/{userId}",
       produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public ResponseEntity<UserDetailsResponse> userProfile(
-      @PathVariable("userId") final String userId,
+  public ResponseEntity<UserDetailsResponse> userProfile(@PathVariable("userId") final String userId,
       @RequestHeader("authorization") final String authorization)
       throws UserNotFoundException, AuthorizationFailedException, AuthenticationFailedException {
 
-    //Get the accessToken from RequestHeader by splitting it appropriately
     String accessToken = authenticationService.getBearerAccessToken(authorization);
 
-    //Validate the bearer authentication providing context as "to get user details"
+    //validating bearer authentication
     authenticationService.validateBearerAuthentication(accessToken, "to get user details");
 
-    //Invoke business service to search for the user in the database, throw UserNotFoundException
-    // if no user is found
     UserEntity userEntity = userService.getUserProfile(userId);
 
-    //If user found, fill ResponseEntity and return userDetailsResponse
+    //If exists
     UserDetailsResponse userDetailsResponse = new UserDetailsResponse();
+	
     userDetailsResponse.setUserName(userEntity.getUsername());
     userDetailsResponse.setAboutMe(userEntity.getAboutme());
     userDetailsResponse.setContactNumber(userEntity.getContactnumber());
@@ -64,7 +60,8 @@ public class CommonController {
     userDetailsResponse.setEmailAddress(userEntity.getEmail());
     userDetailsResponse.setFirstName(userEntity.getFirstName());
     userDetailsResponse.setLastName(userEntity.getLastName());
-    return new ResponseEntity<UserDetailsResponse>(userDetailsResponse, HttpStatus.OK);
+    
+	return new ResponseEntity<UserDetailsResponse>(userDetailsResponse, HttpStatus.OK);
   }
 
 }
