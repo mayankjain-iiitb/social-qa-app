@@ -1,5 +1,4 @@
 package com.upgrad.quora.api.controller;
-
 import com.upgrad.quora.api.model.QuestionDeleteResponse;
 import com.upgrad.quora.api.model.QuestionDetailsResponse;
 import com.upgrad.quora.api.model.QuestionEditRequest;
@@ -40,7 +39,7 @@ public class QuestionController {
   private QuestionService questionService;
 
   /**
-   * Create a question.
+   * New question creation Api.
    *
    * @param authorization   access token
    * @param questionRequest QuestionRequest
@@ -51,36 +50,35 @@ public class QuestionController {
    */
   @RequestMapping(method = RequestMethod.POST, path = "/question/create",
       produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public ResponseEntity<QuestionResponse> postQuestion(
-      @RequestHeader("authorization") final String authorization,
+  public ResponseEntity<QuestionResponse> postQuestion(@RequestHeader("authorization") final String authorization,
       final QuestionRequest questionRequest)
       throws AuthorizationFailedException, AuthenticationFailedException, InvalidQuestionException {
 
-    //Get the bearer access token
+    //fetch token
     String accessToken = authenticationService.getBearerAccessToken(authorization);
 
-    //Validate the bearer authentication
-    UserAuthEntity userAuthEntity = authenticationService
-        .validateBearerAuthentication(accessToken, "to post a question");
+    //Validate token
+    UserAuthEntity userAuthEntity = authenticationService.validateBearerAuthentication(accessToken, "to post a question");
 
-    //Get the user details and fill question detail, associate user
+    //fetch user details
     UserEntity user = userAuthEntity.getUser();
     QuestionEntity questionEntity = new QuestionEntity();
+	
     questionEntity.setUuid(UUID.randomUUID().toString());
     questionEntity.setContent(questionRequest.getContent());
     questionEntity.setDate(ZonedDateTime.now());
     questionEntity.setUser(user);
 
-    //Invoke business service to create question. If same question already exists,
-    // throw DuplicateQuestion related Exception message
+    //question creation by checking existence
     questionService.createQuestion(questionEntity);
-    QuestionResponse questionResponse = new QuestionResponse().id(questionEntity.getUuid())
-        .status("QUESTION CREATED");
-    return new ResponseEntity<QuestionResponse>(questionResponse, HttpStatus.OK);
+	
+    QuestionResponse questionResponse = new QuestionResponse().id(questionEntity.getUuid()).status("QUESTION CREATED");
+    
+	return new ResponseEntity<QuestionResponse>(questionResponse, HttpStatus.OK);
   }
 
   /**
-   * Edit a question.
+   * Api to edit a question.
    *
    * @param authorization       access token
    * @param questionId          question uuid
@@ -92,30 +90,24 @@ public class QuestionController {
    */
   @RequestMapping(method = RequestMethod.PUT, path = "/question/edit/{questionId}",
       produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public ResponseEntity<QuestionEditResponse> editQuestion(
-      @RequestHeader("authorization") final String authorization,
-      @PathVariable("questionId") final String questionId,
-      final QuestionEditRequest questionEditRequest)
+  public ResponseEntity<QuestionEditResponse> editQuestion(@RequestHeader("authorization") final String authorization,
+      @PathVariable("questionId") final String questionId, final QuestionEditRequest questionEditRequest)
       throws AuthorizationFailedException, InvalidQuestionException, AuthenticationFailedException {
 
-    //Get bearer access token
     String accessToken = authenticationService.getBearerAccessToken(authorization);
 
-    //Validate bearer authentication token
-    UserAuthEntity userAuthEntity = authenticationService
-        .validateBearerAuthentication(accessToken, "to edit the question");
+    UserAuthEntity userAuthEntity = authenticationService.validateBearerAuthentication(accessToken, "to edit the question");
     UserEntity user = userAuthEntity.getUser();
 
-    //Invoke business Service to edit the question
-    QuestionEntity questionEntity = questionService
-        .editQuestion(questionEditRequest.getContent(), user.getUuid(), questionId);
-    QuestionEditResponse questionEditResponse = new QuestionEditResponse()
-        .id(questionEntity.getUuid()).status("QUESTION EDITED");
-    return new ResponseEntity<QuestionEditResponse>(questionEditResponse, HttpStatus.OK);
+    QuestionEntity questionEntity = questionService.editQuestion(questionEditRequest.getContent(), user.getUuid(), questionId);
+    
+	QuestionEditResponse questionEditResponse = new QuestionEditResponse().id(questionEntity.getUuid()).status("QUESTION EDITED");
+    
+	return new ResponseEntity<QuestionEditResponse>(questionEditResponse, HttpStatus.OK);
   }
 
   /**
-   * List all the Questions in the system.
+   * Api to fetch Questions.
    *
    * @param authorization access token
    * @return List of QuestionDetailsResponse
@@ -124,25 +116,20 @@ public class QuestionController {
    */
   @RequestMapping(method = RequestMethod.GET, path = "/question/all",
       produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public ResponseEntity<List<QuestionDetailsResponse>> getAllQuestions(
-      @RequestHeader("authorization") final String authorization)
+  public ResponseEntity<List<QuestionDetailsResponse>> getAllQuestions(@RequestHeader("authorization") final String authorization)
       throws AuthorizationFailedException, AuthenticationFailedException {
 
-    //Get bearer access token
     String accessToken = authenticationService.getBearerAccessToken(authorization);
 
-    //Validate bearer authentication token
-    UserAuthEntity userAuthEntity = authenticationService
-        .validateBearerAuthentication(accessToken, "to get all questions");
+    UserAuthEntity userAuthEntity = authenticationService.validateBearerAuthentication(accessToken, "to get all questions");
 
-    //Invoke business Service to get all the questions and add them to a collection
-    // and send across in ResponseEntity
     List<QuestionEntity> questionEntityList = questionService.getAllQuestions();
+
     return getListResponseEntity(questionEntityList);
   }
 
   /**
-   * Get all questions of a user.
+   * User related questions.
    *
    * @param authorization access token
    * @param userId        user uuid
@@ -153,40 +140,43 @@ public class QuestionController {
    */
   @RequestMapping(method = RequestMethod.GET, path = "/question/all/{userId}",
       produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public ResponseEntity<List<QuestionDetailsResponse>> getAllQuestionsByUser(
-      @RequestHeader("authorization") final String authorization,
+  public ResponseEntity<List<QuestionDetailsResponse>> getAllQuestionsByUser(@RequestHeader("authorization") final String authorization,
       @PathVariable("userId") final String userId)
       throws AuthenticationFailedException, AuthorizationFailedException, UserNotFoundException {
+		  
     String accessToken = authenticationService.getBearerAccessToken(authorization);
-    UserAuthEntity userAuthEntity = authenticationService
-        .validateBearerAuthentication(accessToken, "to get all questions by user");
+	
+    UserAuthEntity userAuthEntity = authenticationService.validateBearerAuthentication(accessToken, "to get all questions by user");
     UserEntity user = userAuthEntity.getUser();
-    List<QuestionEntity> questionEntityList = questionService.getAllQuestionsByUser(userId);
-    return getListResponseEntity(questionEntityList);
-
+    
+	List<QuestionEntity> questionEntityList = questionService.getAllQuestionsByUser(userId);
+    
+	return getListResponseEntity(questionEntityList);
   }
 
   /**
-   * Prepare list of QuestionDetailsResponse.
+   * Method to create QuestionDetailsResponse List.
    *
    * @param questionEntityList QuestionEntity List
    * @return List of QuestionDetailsResponse
    */
   private ResponseEntity<List<QuestionDetailsResponse>> getListResponseEntity(
       List<QuestionEntity> questionEntityList) {
-    List<QuestionDetailsResponse> ent = new ArrayList<QuestionDetailsResponse>();
-    for (QuestionEntity n : questionEntityList) {
+    List<QuestionDetailsResponse> qdrList = new ArrayList<QuestionDetailsResponse>();
+	
+    for (QuestionEntity qe : questionEntityList) {
       QuestionDetailsResponse questionDetailsResponse = new QuestionDetailsResponse();
-      questionDetailsResponse.id(n.getUuid());
-      questionDetailsResponse.content(n.getContent());
-      ent.add(questionDetailsResponse);
+      questionDetailsResponse.id(qe.getUuid());
+      questionDetailsResponse.content(qe.getContent());
+	  
+      qdrList.add(questionDetailsResponse);
     }
 
-    return new ResponseEntity<List<QuestionDetailsResponse>>(ent, HttpStatus.OK);
+    return new ResponseEntity<List<QuestionDetailsResponse>>(qdrList, HttpStatus.OK);
   }
 
   /**
-   * Delete a question.
+   * Api to delete a question.
    *
    * @param authorization access token
    * @param questionId    question uuid
@@ -197,17 +187,18 @@ public class QuestionController {
    */
   @RequestMapping(method = RequestMethod.DELETE, path = "/question/delete/{questionId}",
       produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public ResponseEntity<QuestionDeleteResponse> deleteQuestion(
-      @RequestHeader("authorization") final String authorization,
+  public ResponseEntity<QuestionDeleteResponse> deleteQuestion(@RequestHeader("authorization") final String authorization,
       @PathVariable("questionId") final String questionId)
       throws AuthenticationFailedException, AuthorizationFailedException, InvalidQuestionException {
+		  
     String accessToken = authenticationService.getBearerAccessToken(authorization);
-    UserAuthEntity userAuthEntity = authenticationService
-        .validateBearerAuthentication(accessToken, "to delete the question");
+    UserAuthEntity userAuthEntity = authenticationService.validateBearerAuthentication(accessToken, "to delete the question");
     UserEntity user = userAuthEntity.getUser();
+	
     QuestionEntity questionEntity = questionService.deleteQuestion(user, questionId);
-    QuestionDeleteResponse deleteResponse = new QuestionDeleteResponse()
-        .id(questionEntity.getUuid()).status("QUESTION DELETED");
-    return new ResponseEntity<QuestionDeleteResponse>(deleteResponse, HttpStatus.OK);
+    
+	QuestionDeleteResponse deleteResponse = new QuestionDeleteResponse().id(questionEntity.getUuid()).status("QUESTION DELETED");
+    
+	return new ResponseEntity<QuestionDeleteResponse>(deleteResponse, HttpStatus.OK);
   }
 }
